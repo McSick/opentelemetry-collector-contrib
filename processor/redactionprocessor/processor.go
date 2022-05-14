@@ -87,6 +87,13 @@ func (s *redaction) processResourceSpan(ctx context.Context, rs ptrace.ResourceS
 
 			// Attributes can also be part of span
 			s.processAttrs(ctx, &spanAttrs)
+			for l := 0; l < span.Events().Len(); l++ {
+				event := span.Events().At(l)
+				eventAttrs := event.Attributes()
+				
+				// Attributes can also be part of span events
+				s.processAttrs(ctx, &eventAttrs)
+			}
 		}
 	}
 }

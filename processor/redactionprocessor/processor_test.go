@@ -71,14 +71,21 @@ func TestRedactUnknownAttributes(t *testing.T) {
 	firstOutILS := next.AllTraces()[0].ResourceSpans().At(0).ScopeSpans().At(0)
 	assert.Equal(t, library.Name(), firstOutILS.Scope().Name())
 	assert.Equal(t, span.Name(), firstOutILS.Spans().At(0).Name())
+	assert.Equal(t, span.Events().At(0).Name(), firstOutILS.Spans().At(0).Events().At(0).Name())
 	attr := firstOutILS.Spans().At(0).Attributes()
+	eventAttr := firstOutILS.Spans().At(0).Events().At(0).Attributes()
 	for k, v := range allowed {
 		val, ok := attr.Get(k)
+		assert.True(t, ok)
+		assert.True(t, v.Equal(val))
+		val, ok = eventAttr.Get(k)
 		assert.True(t, ok)
 		assert.True(t, v.Equal(val))
 	}
 	for k := range redacted {
 		_, ok := attr.Get(k)
+		assert.False(t, ok)
+		_, ok = eventAttr.Get(k)
 		assert.False(t, ok)
 	}
 }
@@ -110,12 +117,18 @@ func TestRedactSummaryDebug(t *testing.T) {
 
 	firstOutILS := next.AllTraces()[0].ResourceSpans().At(0).ScopeSpans().At(0)
 	attr := firstOutILS.Spans().At(0).Attributes()
+	eventAttr := firstOutILS.Spans().At(0).Events().At(0).Attributes()
 	var deleted []string
 	for k := range redacted {
 		_, ok := attr.Get(k)
 		assert.False(t, ok)
+		_, ok = eventAttr.Get(k)
+		assert.False(t, ok)
 		deleted = append(deleted, k)
 	}
+	blockedKeys := []string{"name"}
+
+	// span
 	maskedKeys, ok := attr.Get(redactedKeys)
 	assert.True(t, ok)
 	sort.Strings(deleted)
@@ -123,15 +136,30 @@ func TestRedactSummaryDebug(t *testing.T) {
 	maskedKeyCount, ok := attr.Get(redactedKeyCount)
 	assert.True(t, ok)
 	assert.Equal(t, int64(len(deleted)), maskedKeyCount.IntVal())
+	value, ok := attr.Get(maskedValues)
+	assert.True(t, ok)
+	assert.Equal(t, strings.Join(blockedKeys, ","), value.StringVal())
+	value, ok = attr.Get(maskedValueCount)
+	assert.True(t, ok)
+	assert.Equal(t, int64(1), value.IntVal())
+	value, _ = attr.Get("name")
+	assert.Equal(t, "placeholder ****", value.StringVal())
 
-	blockedKeys := []string{"name"}
-	maskedValues, ok := attr.Get(maskedValues)
+	// span event
+	maskedKeys, ok = eventAttr.Get(redactedKeys)
 	assert.True(t, ok)
-	assert.Equal(t, strings.Join(blockedKeys, ","), maskedValues.StringVal())
-	maskedValueCount, ok := attr.Get(maskedValueCount)
+	sort.Strings(deleted)
+	assert.Equal(t, strings.Join(deleted, ","), maskedKeys.StringVal())
+	maskedKeyCount, ok = eventAttr.Get(redactedKeyCount)
 	assert.True(t, ok)
-	assert.Equal(t, int64(1), maskedValueCount.IntVal())
-	value, _ := attr.Get("name")
+	assert.Equal(t, int64(len(deleted)), maskedKeyCount.IntVal())
+	value, ok = eventAttr.Get(maskedValues)
+	assert.True(t, ok)
+	assert.Equal(t, strings.Join(blockedKeys, ","), value.StringVal())
+	value, ok = eventAttr.Get(maskedValueCount)
+	assert.True(t, ok)
+	assert.Equal(t, int64(1), value.IntVal())
+	value, _ = eventAttr.Get("name")
 	assert.Equal(t, "placeholder ****", value.StringVal())
 }
 
@@ -158,24 +186,49 @@ func TestRedactSummaryInfo(t *testing.T) {
 
 	firstOutILS := next.AllTraces()[0].ResourceSpans().At(0).ScopeSpans().At(0)
 	attr := firstOutILS.Spans().At(0).Attributes()
+	eventAttr := firstOutILS.Spans().At(0).Events().At(0).Attributes()
 	var deleted []string
 	for k := range redacted {
 		_, ok := attr.Get(k)
 		assert.False(t, ok)
+		_, ok = eventAttr.Get(k)
+		assert.False(t, ok)
+
 		deleted = append(deleted, k)
 	}
+
 	_, ok := attr.Get(redactedKeys)
 	assert.False(t, ok)
+
+	_, ok = eventAttr.Get(redactedKeys)
+	assert.False(t, ok)
+
 	maskedKeyCount, ok := attr.Get(redactedKeyCount)
 	assert.True(t, ok)
 	assert.Equal(t, int64(len(deleted)), maskedKeyCount.IntVal())
+
+	maskedKeyCount, ok = eventAttr.Get(redactedKeyCount)
+	assert.True(t, ok)
+	assert.Equal(t, int64(len(deleted)), maskedKeyCount.IntVal())
+
 	_, ok = attr.Get(maskedValues)
 	assert.False(t, ok)
 
-	maskedValueCount, ok := attr.Get(maskedValueCount)
+	_, ok = eventAttr.Get(maskedValues)
+	assert.False(t, ok)
+
+	value, ok := attr.Get(maskedValueCount)
 	assert.True(t, ok)
-	assert.Equal(t, int64(1), maskedValueCount.IntVal())
-	value, _ := attr.Get("name")
+	assert.Equal(t, int64(1), value.IntVal())
+
+	value, ok = eventAttr.Get(maskedValueCount)
+	assert.True(t, ok)
+	assert.Equal(t, int64(1), value.IntVal())
+
+	value, _ = attr.Get("name")
+	assert.Equal(t, "placeholder ****", value.StringVal())
+
+	value, _ = eventAttr.Get("name")
 	assert.Equal(t, "placeholder ****", value.StringVal())
 }
 
@@ -199,10 +252,15 @@ func TestRedactSummarySilent(t *testing.T) {
 
 	firstOutILS := next.AllTraces()[0].ResourceSpans().At(0).ScopeSpans().At(0)
 	attr := firstOutILS.Spans().At(0).Attributes()
+	eventAttr := firstOutILS.Spans().At(0).Events().At(0).Attributes()
 	for k := range redacted {
 		_, ok := attr.Get(k)
 		assert.False(t, ok)
+		_, ok = eventAttr.Get(k)
+		assert.False(t, ok)
 	}
+
+	// span
 	_, ok := attr.Get(redactedKeys)
 	assert.False(t, ok)
 	_, ok = attr.Get(redactedKeyCount)
@@ -212,6 +270,18 @@ func TestRedactSummarySilent(t *testing.T) {
 	_, ok = attr.Get(maskedValueCount)
 	assert.False(t, ok)
 	value, _ := attr.Get("name")
+	assert.Equal(t, "placeholder ****", value.StringVal())
+
+	// span event
+	_, ok = eventAttr.Get(redactedKeys)
+	assert.False(t, ok)
+	_, ok = eventAttr.Get(redactedKeyCount)
+	assert.False(t, ok)
+	_, ok = eventAttr.Get(maskedValues)
+	assert.False(t, ok)
+	_, ok = eventAttr.Get(maskedValueCount)
+	assert.False(t, ok)
+	value, _ = eventAttr.Get("name")
 	assert.Equal(t, "placeholder ****", value.StringVal())
 }
 
@@ -230,6 +300,9 @@ func TestRedactSummaryDefault(t *testing.T) {
 
 	firstOutILS := next.AllTraces()[0].ResourceSpans().At(0).ScopeSpans().At(0)
 	attr := firstOutILS.Spans().At(0).Attributes()
+	eventattr := firstOutILS.Spans().At(0).Attributes()
+
+	// span
 	_, ok := attr.Get(redactedKeys)
 	assert.False(t, ok)
 	_, ok = attr.Get(redactedKeyCount)
@@ -237,6 +310,16 @@ func TestRedactSummaryDefault(t *testing.T) {
 	_, ok = attr.Get(maskedValues)
 	assert.False(t, ok)
 	_, ok = attr.Get(maskedValueCount)
+	assert.False(t, ok)
+
+	// span event
+	_, ok = eventattr.Get(redactedKeys)
+	assert.False(t, ok)
+	_, ok = eventattr.Get(redactedKeyCount)
+	assert.False(t, ok)
+	_, ok = eventattr.Get(maskedValues)
+	assert.False(t, ok)
+	_, ok = eventattr.Get(maskedValueCount)
 	assert.False(t, ok)
 }
 
@@ -261,12 +344,17 @@ func TestMultipleBlockValues(t *testing.T) {
 
 	firstOutILS := next.AllTraces()[0].ResourceSpans().At(0).ScopeSpans().At(0)
 	attr := firstOutILS.Spans().At(0).Attributes()
+	eventAttr := firstOutILS.Spans().At(0).Events().At(0).Attributes()
 	var deleted []string
 	for k := range redacted {
 		_, ok := attr.Get(k)
 		assert.False(t, ok)
+		_, ok = eventAttr.Get(k)
+		assert.False(t, ok)
 		deleted = append(deleted, k)
 	}
+	blockedKeys := []string{"name", "mystery"}
+	// span
 	maskedKeys, ok := attr.Get(redactedKeys)
 	assert.True(t, ok)
 	assert.Equal(t, strings.Join(deleted, ","), maskedKeys.StringVal())
@@ -274,17 +362,37 @@ func TestMultipleBlockValues(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, int64(len(deleted)), maskedKeyCount.IntVal())
 
-	blockedKeys := []string{"name", "mystery"}
-	maskedValues, ok := attr.Get(maskedValues)
+	value, ok := attr.Get(maskedValues)
 	assert.True(t, ok)
 	sort.Strings(blockedKeys)
-	assert.Equal(t, strings.Join(blockedKeys, ","), maskedValues.StringVal())
-	maskedValues.Equal(pcommon.NewValueString(strings.Join(blockedKeys, ",")))
-	maskedValueCount, ok := attr.Get(maskedValueCount)
+	assert.Equal(t, strings.Join(blockedKeys, ","), value.StringVal())
+	value.Equal(pcommon.NewValueString(strings.Join(blockedKeys, ",")))
+	value, ok = attr.Get(maskedValueCount)
 	assert.True(t, ok)
-	assert.Equal(t, int64(len(blockedKeys)), maskedValueCount.IntVal())
+	assert.Equal(t, int64(len(blockedKeys)), value.IntVal())
 	nameValue, _ := attr.Get("name")
 	mysteryValue, _ := attr.Get("mystery")
+	assert.Equal(t, "placeholder ****", nameValue.StringVal())
+	assert.Equal(t, "mystery ****", mysteryValue.StringVal())
+
+	// span event
+	maskedKeys, ok = eventAttr.Get(redactedKeys)
+	assert.True(t, ok)
+	assert.Equal(t, strings.Join(deleted, ","), maskedKeys.StringVal())
+	maskedKeyCount, ok = eventAttr.Get(redactedKeyCount)
+	assert.True(t, ok)
+	assert.Equal(t, int64(len(deleted)), maskedKeyCount.IntVal())
+
+	value, ok = eventAttr.Get(maskedValues)
+	assert.True(t, ok)
+	sort.Strings(blockedKeys)
+	assert.Equal(t, strings.Join(blockedKeys, ","), value.StringVal())
+	value.Equal(pcommon.NewValueString(strings.Join(blockedKeys, ",")))
+	value, ok = eventAttr.Get(maskedValueCount)
+	assert.True(t, ok)
+	assert.Equal(t, int64(len(blockedKeys)), value.IntVal())
+	nameValue, _ = eventAttr.Get("name")
+	mysteryValue, _ = eventAttr.Get("mystery")
 	assert.Equal(t, "placeholder ****", nameValue.StringVal())
 	assert.Equal(t, "mystery ****", mysteryValue.StringVal())
 }
@@ -306,21 +414,30 @@ func runTest(
 	span := ils.Spans().AppendEmpty()
 	span.SetName("first-batch-first-span")
 	span.SetTraceID(pcommon.NewTraceID([16]byte{1, 2, 3, 4}))
+	event := span.Events().AppendEmpty()
+	event.SetName("first-event")
 
 	length := len(allowed) + len(masked) + len(redacted)
 	for k, v := range allowed {
 		span.Attributes().Upsert(k, v)
+		event.Attributes().Upsert(k, v)
 	}
 	for k, v := range masked {
 		span.Attributes().Upsert(k, v)
+		event.Attributes().Upsert(k, v)
 	}
 	for k, v := range redacted {
 		span.Attributes().Upsert(k, v)
+		event.Attributes().Upsert(k, v)
 	}
 
 	assert.Equal(t, span.Attributes().Len(), length)
 	assert.Equal(t, ils.Spans().At(0).Attributes().Len(), length)
 	assert.Equal(t, inBatch.ResourceSpans().At(0).ScopeSpans().At(0).Spans().At(0).Attributes().Len(), length)
+
+	assert.Equal(t, event.Attributes().Len(), length)
+	assert.Equal(t, ils.Spans().At(0).Events().At(0).Attributes().Len(), length)
+	assert.Equal(t, inBatch.ResourceSpans().At(0).ScopeSpans().At(0).Spans().At(0).Events().At(0).Attributes().Len(), length)
 
 	// test
 	ctx := context.Background()
@@ -407,15 +524,18 @@ func runBenchmark(
 	span := ils.Spans().AppendEmpty()
 	span.SetName("first-batch-first-span")
 	span.SetTraceID(pcommon.NewTraceID([16]byte{1, 2, 3, 4}))
-
+    span.Events().AppendEmpty()
 	for k, v := range allowed {
 		span.Attributes().Upsert(k, v)
+		span.Events().At(0).Attributes().Upsert(k, v)
 	}
 	for k, v := range masked {
 		span.Attributes().Upsert(k, v)
+		span.Events().At(0).Attributes().Upsert(k, v)
 	}
 	for k, v := range redacted {
 		span.Attributes().Upsert(k, v)
+		span.Events().At(0).Attributes().Upsert(k, v)
 	}
 
 	_ = processor.ConsumeTraces(context.Background(), inBatch)
