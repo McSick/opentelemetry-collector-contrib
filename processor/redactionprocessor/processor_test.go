@@ -524,7 +524,7 @@ func runBenchmark(
 	span := ils.Spans().AppendEmpty()
 	span.SetName("first-batch-first-span")
 	span.SetTraceID(pcommon.NewTraceID([16]byte{1, 2, 3, 4}))
-    span.Events().AppendEmpty()
+	span.Events().AppendEmpty()
 	for k, v := range allowed {
 		span.Attributes().Upsert(k, v)
 		span.Events().At(0).Attributes().Upsert(k, v)

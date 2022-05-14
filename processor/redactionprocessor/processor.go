@@ -90,7 +90,7 @@ func (s *redaction) processResourceSpan(ctx context.Context, rs ptrace.ResourceS
 			for l := 0; l < span.Events().Len(); l++ {
 				event := span.Events().At(l)
 				eventAttrs := event.Attributes()
-				
+
 				// Attributes can also be part of span events
 				s.processAttrs(ctx, &eventAttrs)
 			}
@@ -104,7 +104,7 @@ func (s *redaction) processAttrs(_ context.Context, attributes *pcommon.Map) {
 	var toDelete []string
 	var toBlock []string
 
-	// Identify attributes to redact and mask in the following sequence
+	// Identify attributes to redact and mask in the followinmag sequence
 	// 1. Make a list of attribute keys to redact
 	// 2. Mask any blocked values for the other attributes
 	// 3. Delete the attributes from 1
