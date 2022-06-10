@@ -2223,6 +2223,7 @@ go.opentelemetry.io/collector v0.51.0 h1:r4cfvLYkmdTWU+RioL2QqxD/GLJUXRNifG0NCfR
 go.opentelemetry.io/collector v0.51.0/go.mod h1:2pHwJxKDhSd4t42GkiCosU9G3szHoWUK2R0qnB6X67A=
 go.opentelemetry.io/collector/model v0.44.0/go.mod h1:4jo1R8uBDspLCxUGhQ0k3v/EFXFbW7s0AIy3LuGLbcU=
 go.opentelemetry.io/collector/model v0.45.0/go.mod h1:uyiyyq8lV45zrJ94MnLip26sorfNLP6J9XmOvaEmy7w=
+go.opentelemetry.io/collector/model v0.48.0 h1:xmN4LdZ92q6PZnaKhMdIlC5KGtPJeOYaWCnA1PQ2oZw=
 go.opentelemetry.io/collector/model v0.48.0/go.mod h1:1QVYv8TqsTMt9wVC5BUF9fqMVtk2C5EclWDnuVqdKoU=
 go.opentelemetry.io/collector/pdata v0.51.0 h1:J5CCnrg1iGOA1CfFOH+wAkMlJ1vjcm677kuPp18mbko=
 go.opentelemetry.io/collector/pdata v0.51.0/go.mod h1:FsowYKNmf8CgsHgOfJv8V3KjALmy6FYQRHtXAOY3fho=
