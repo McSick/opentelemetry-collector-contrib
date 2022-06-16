@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package json // import "github.com/open-telemetry/opentelemetry-log-collection/operator/parser/json"
+package json // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/parser/json"
 
 import (
 	"context"
@@ -21,53 +21,53 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/helper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 )
 
 func init() {
-	operator.Register("json_parser", func() operator.Builder { return NewJSONParserConfig("") })
+	operator.Register("json_parser", func() operator.Builder { return NewConfig("") })
 }
 
-// NewJSONParserConfig creates a new JSON parser config with default values
-func NewJSONParserConfig(operatorID string) *JSONParserConfig {
-	return &JSONParserConfig{
+// NewConfig creates a new JSON parser config with default values
+func NewConfig(operatorID string) *Config {
+	return &Config{
 		ParserConfig: helper.NewParserConfig(operatorID, "json_parser"),
 	}
 }
 
-// JSONParserConfig is the configuration of a JSON parser operator.
-type JSONParserConfig struct {
+// Config is the configuration of a JSON parser operator.
+type Config struct {
 	helper.ParserConfig `mapstructure:",squash" yaml:",inline"`
 }
 
 // Build will build a JSON parser operator.
-func (c JSONParserConfig) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
+func (c Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 	parserOperator, err := c.ParserConfig.Build(logger)
 	if err != nil {
 		return nil, err
 	}
 
-	return &JSONParser{
+	return &Parser{
 		ParserOperator: parserOperator,
 		json:           jsoniter.ConfigFastest,
 	}, nil
 }
 
-// JSONParser is an operator that parses JSON.
-type JSONParser struct {
+// Parser is an operator that parses JSON.
+type Parser struct {
 	helper.ParserOperator
 	json jsoniter.API
 }
 
 // Process will parse an entry for JSON.
-func (j *JSONParser) Process(ctx context.Context, entry *entry.Entry) error {
+func (j *Parser) Process(ctx context.Context, entry *entry.Entry) error {
 	return j.ParserOperator.ProcessWith(ctx, entry, j.parse)
 }
 
 // parse will parse a value as JSON.
-func (j *JSONParser) parse(value interface{}) (interface{}, error) {
+func (j *Parser) parse(value interface{}) (interface{}, error) {
 	var parsedValue map[string]interface{}
 	switch m := value.(type) {
 	case string:

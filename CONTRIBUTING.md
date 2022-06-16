@@ -19,8 +19,9 @@ providing the following information:
 
 * Who's the sponsor for your component. A sponsor is an approver who will be in charge of being the official reviewer of
   the code and become a code owner for the component. For vendor-specific components, it's good to have a volunteer
-  sponsor. If you can't find one, we'll assign one in a round-robin fashion. For non-vendor specific components, having
-  a sponsor means that your use case has been validated.
+  sponsor. If you can't find one, we'll assign one in a round-robin fashion. A vendor-specific component directly interfaces
+  with a vendor-specific API and is expected to be maintained by a representative of the same vendor. For non-vendor specific
+  components, having a sponsor means that your use case has been validated.
 * Some information about your component, such as the reasoning behind it, use-cases, telemetry data types supported, and
   anything else you think is relevant for us to make a decision about accepting the component.
 * The configuration options your component will accept. This will help us understand what it does and have an idea of
@@ -74,6 +75,7 @@ The following GitHub users are the currently available sponsors, either by being
 * [@dmitryax](https://github.com/dmitryax)
 * [@bogdandrutu](https://github.com/bogdandrutu)
 * [@dashpole](https://github.com/dashpole)
+* [@TylerHelmuth](https://github.com/TylerHelmuth)
 
 Whenever a sponsor is picked from the top of this list, please move them to the bottom.
 ## General Recommendations
@@ -86,4 +88,4 @@ in general try to follow them.
   package](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/exporterhelper). This will
   ensure that the exporter provides [zPages](https://opencensus.io/zpages/) and a standard set of metrics.
 - `replace` statements in `go.mod` files can be automatically inserted by running `make crosslink`. For more information
-  on the `crosslink` tool see the README [here](https://github.com/open-telemetry/opentelemetry-go-build-tools/tree/main/crosslink). 
+  on the `crosslink` tool see the README [here](https://github.com/open-telemetry/opentelemetry-go-build-tools/tree/main/crosslink).

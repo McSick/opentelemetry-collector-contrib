@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
 )
 
 const testScopeName = "my.logger"
@@ -177,7 +177,7 @@ func ScopeConfigFromFileViaMapstructure(file string, result *ScopeNameParser) er
 
 	raw := map[string]interface{}{}
 
-	if err := yaml.Unmarshal(bytes, raw); err != nil {
+	if err = yaml.Unmarshal(bytes, raw); err != nil {
 		return fmt.Errorf("failed to read data from yaml: %s", err)
 	}
 

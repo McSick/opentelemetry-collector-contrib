@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package retain // import "github.com/open-telemetry/opentelemetry-log-collection/operator/transformer/retain"
+package retain // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/transformer/retain"
 
 import (
 	"context"
@@ -21,30 +21,30 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/helper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 )
 
 func init() {
-	operator.Register("retain", func() operator.Builder { return NewRetainOperatorConfig("") })
+	operator.Register("retain", func() operator.Builder { return NewConfig("") })
 }
 
-// NewRetainOperatorConfig creates a new retain operator config with default values
-func NewRetainOperatorConfig(operatorID string) *RetainOperatorConfig {
-	return &RetainOperatorConfig{
+// NewConfig creates a new retain operator config with default values
+func NewConfig(operatorID string) *Config {
+	return &Config{
 		TransformerConfig: helper.NewTransformerConfig(operatorID, "retain"),
 	}
 }
 
-// RetainOperatorConfig is the configuration of a retain operator
-type RetainOperatorConfig struct {
+// Config is the configuration of a retain operator
+type Config struct {
 	helper.TransformerConfig `mapstructure:",squash" yaml:",inline"`
 	Fields                   []entry.Field `mapstructure:"fields" json:"fields" yaml:"fields"`
 }
 
 // Build will build a retain operator from the supplied configuration
-func (c RetainOperatorConfig) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
+func (c Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 	transformerOperator, err := c.TransformerConfig.Build(logger)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (c RetainOperatorConfig) Build(logger *zap.SugaredLogger) (operator.Operato
 		return nil, fmt.Errorf("retain: 'fields' is empty")
 	}
 
-	retainOp := &RetainOperator{
+	retainOp := &Transformer{
 		TransformerOperator: transformerOperator,
 		Fields:              c.Fields,
 	}
@@ -73,8 +73,8 @@ func (c RetainOperatorConfig) Build(logger *zap.SugaredLogger) (operator.Operato
 	return retainOp, nil
 }
 
-// RetainOperator keeps the given fields and deletes the rest.
-type RetainOperator struct {
+// Transformer keeps the given fields and deletes the rest.
+type Transformer struct {
 	helper.TransformerOperator
 	Fields             []entry.Field
 	AllBodyFields      bool
@@ -83,12 +83,12 @@ type RetainOperator struct {
 }
 
 // Process will process an entry with a retain transformation.
-func (p *RetainOperator) Process(ctx context.Context, entry *entry.Entry) error {
+func (p *Transformer) Process(ctx context.Context, entry *entry.Entry) error {
 	return p.ProcessWith(ctx, entry, p.Transform)
 }
 
 // Transform will apply the retain operation to an entry
-func (p *RetainOperator) Transform(e *entry.Entry) error {
+func (p *Transformer) Transform(e *entry.Entry) error {
 	newEntry := entry.New()
 	newEntry.ObservedTimestamp = e.ObservedTimestamp
 	newEntry.Timestamp = e.Timestamp

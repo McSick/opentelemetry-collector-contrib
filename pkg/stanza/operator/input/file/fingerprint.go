@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package file // import "github.com/open-telemetry/opentelemetry-log-collection/operator/input/file"
+package file // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/input/file"
 
 import (
 	"bytes"
@@ -32,7 +32,7 @@ type Fingerprint struct {
 }
 
 // NewFingerprint creates a new fingerprint from an open file
-func (f *InputOperator) NewFingerprint(file *os.File) (*Fingerprint, error) {
+func (f *Input) NewFingerprint(file *os.File) (*Fingerprint, error) {
 	buf := make([]byte, f.fingerprintSize)
 
 	n, err := file.ReadAt(buf, 0)

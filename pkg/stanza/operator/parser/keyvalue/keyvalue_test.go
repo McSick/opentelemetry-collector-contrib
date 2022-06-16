@@ -22,9 +22,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
-	"github.com/open-telemetry/opentelemetry-log-collection/testutil"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/testutil"
 )
 
 func newTestParser(t *testing.T) *KVParser {
@@ -532,7 +532,7 @@ func TestKVParser(t *testing.T) {
 			require.NoError(t, err)
 
 			fake := testutil.NewFakeOutput(t)
-			op.SetOutputs([]operator.Operator{fake})
+			require.NoError(t, op.SetOutputs([]operator.Operator{fake}))
 
 			ots := time.Now()
 			tc.input.ObservedTimestamp = ots

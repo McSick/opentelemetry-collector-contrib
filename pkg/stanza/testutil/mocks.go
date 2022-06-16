@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testutil // import "github.com/open-telemetry/opentelemetry-log-collection/testutil"
+package testutil // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/testutil"
 
 import (
 	context "context"
@@ -20,11 +20,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	zap "go.uber.org/zap"
+	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 
-	entry "github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 )
 
 // NewMockOperator will return a basic operator mock

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package helper // import "github.com/open-telemetry/opentelemetry-log-collection/operator/helper"
+package helper // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
 )
 
 // map[string or int input]sev-level
@@ -142,20 +142,20 @@ const (
 	HTTP5xx = "5xx"
 )
 
-// NewSeverityParserConfig creates a new severity parser config
-func NewSeverityParserConfig() SeverityParserConfig {
-	return SeverityParserConfig{}
+// NewConfig creates a new severity parser config
+func NewConfig() Config {
+	return Config{}
 }
 
-// SeverityParserConfig allows users to specify how to parse a severity from a field.
-type SeverityParserConfig struct {
+// Config allows users to specify how to parse a severity from a field.
+type Config struct {
 	ParseFrom *entry.Field                `mapstructure:"parse_from,omitempty"  json:"parse_from,omitempty"  yaml:"parse_from,omitempty"`
 	Preset    string                      `mapstructure:"preset,omitempty"      json:"preset,omitempty"      yaml:"preset,omitempty"`
 	Mapping   map[interface{}]interface{} `mapstructure:"mapping,omitempty"     json:"mapping,omitempty"     yaml:"mapping,omitempty"`
 }
 
-// Build builds a SeverityParser from a SeverityParserConfig
-func (c *SeverityParserConfig) Build(logger *zap.SugaredLogger) (SeverityParser, error) {
+// Build builds a SeverityParser from a Config
+func (c *Config) Build(logger *zap.SugaredLogger) (SeverityParser, error) {
 	operatorMapping := getBuiltinMapping(c.Preset)
 
 	for severity, unknown := range c.Mapping {

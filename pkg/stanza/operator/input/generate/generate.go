@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package generate // import "github.com/open-telemetry/opentelemetry-log-collection/operator/input/generate"
+package generate // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/input/generate"
 
 import (
 	"context"
@@ -22,24 +22,24 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/helper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 )
 
 func init() {
-	operator.Register("generate_input", func() operator.Builder { return NewGenerateInputConfig("") })
+	operator.Register("generate_input", func() operator.Builder { return NewConfig("") })
 }
 
-// NewGenerateInputConfig creates a new generate input config with default values
-func NewGenerateInputConfig(operatorID string) *GenerateInputConfig {
-	return &GenerateInputConfig{
+// NewConfig creates a new generate input config with default values
+func NewConfig(operatorID string) *Config {
+	return &Config{
 		InputConfig: helper.NewInputConfig(operatorID, "generate_input"),
 	}
 }
 
-// GenerateInputConfig is the configuration of a generate input operator.
-type GenerateInputConfig struct {
+// Config is the configuration of a generate input operator.
+type Config struct {
 	helper.InputConfig `yaml:",inline"`
 	Entry              entry.Entry `json:"entry"           yaml:"entry"`
 	Count              int         `json:"count,omitempty" yaml:"count,omitempty"`
@@ -47,7 +47,7 @@ type GenerateInputConfig struct {
 }
 
 // Build will build a generate input operator.
-func (c *GenerateInputConfig) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
+func (c *Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 	inputOperator, err := c.InputConfig.Build(logger)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (c *GenerateInputConfig) Build(logger *zap.SugaredLogger) (operator.Operato
 
 	c.Entry.Body = recursiveMapInterfaceToMapString(c.Entry.Body)
 
-	return &GenerateInput{
+	return &Input{
 		InputOperator: inputOperator,
 		entry:         c.Entry,
 		count:         c.Count,
@@ -63,8 +63,8 @@ func (c *GenerateInputConfig) Build(logger *zap.SugaredLogger) (operator.Operato
 	}, nil
 }
 
-// GenerateInput is an operator that generates log entries.
-type GenerateInput struct {
+// Input is an operator that generates log entries.
+type Input struct {
 	helper.InputOperator
 	entry  entry.Entry
 	count  int
@@ -74,7 +74,7 @@ type GenerateInput struct {
 }
 
 // Start will start generating log entries.
-func (g *GenerateInput) Start(_ operator.Persister) error {
+func (g *Input) Start(_ operator.Persister) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	g.cancel = cancel
 
@@ -106,7 +106,7 @@ func (g *GenerateInput) Start(_ operator.Persister) error {
 }
 
 // Stop will stop generating logs.
-func (g *GenerateInput) Stop() error {
+func (g *Input) Stop() error {
 	g.cancel()
 	g.wg.Wait()
 	return nil
@@ -123,11 +123,11 @@ func recursiveMapInterfaceToMapString(m interface{}) interface{} {
 	case map[interface{}]interface{}:
 		newMap := make(map[string]interface{})
 		for k, v := range m {
-			kStr, ok := k.(string)
+			str, ok := k.(string)
 			if !ok {
-				kStr = fmt.Sprintf("%v", k)
+				str = fmt.Sprintf("%v", k)
 			}
-			newMap[kStr] = recursiveMapInterfaceToMapString(v)
+			newMap[str] = recursiveMapInterfaceToMapString(v)
 		}
 		return newMap
 	default:

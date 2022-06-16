@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package file // import "github.com/open-telemetry/opentelemetry-log-collection/operator/input/file"
+package file // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/input/file"
 
 import (
 	"bufio"
@@ -25,9 +25,9 @@ import (
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/errors"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/helper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/errors"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 )
 
 // File attributes contains information about file paths
@@ -40,7 +40,7 @@ type fileAttributes struct {
 
 // resolveFileAttributes resolves file attributes
 // and sets it to empty string in case of error
-func (f *InputOperator) resolveFileAttributes(path string) *fileAttributes {
+func (f *Input) resolveFileAttributes(path string) *fileAttributes {
 	resolved, err := filepath.EvalSymlinks(path)
 	if err != nil {
 		f.Error(err)
@@ -65,7 +65,7 @@ type Reader struct {
 	Offset      int64
 
 	generation     int
-	fileInput      *InputOperator
+	fileInput      *Input
 	file           *os.File
 	fileAttributes *fileAttributes
 
@@ -78,7 +78,7 @@ type Reader struct {
 }
 
 // NewReader creates a new file reader
-func (f *InputOperator) NewReader(path string, file *os.File, fp *Fingerprint, splitter *helper.Splitter) (*Reader, error) {
+func (f *Input) NewReader(path string, file *os.File, fp *Fingerprint, splitter *helper.Splitter) (*Reader, error) {
 	r := &Reader{
 		Fingerprint:    fp,
 		file:           file,
@@ -226,11 +226,19 @@ func getScannerError(scanner *PositionalScanner) error {
 
 // Read from the file and update the fingerprint if necessary
 func (r *Reader) Read(dst []byte) (int, error) {
-	if len(r.Fingerprint.FirstBytes) == r.fileInput.fingerprintSize {
+	// Skip if fingerprint is already built
+	// or if fingerprint is behind Offset
+	if len(r.Fingerprint.FirstBytes) == r.fileInput.fingerprintSize || int(r.Offset) > len(r.Fingerprint.FirstBytes) {
 		return r.file.Read(dst)
 	}
 	n, err := r.file.Read(dst)
 	appendCount := min0(n, r.fileInput.fingerprintSize-int(r.Offset))
+	// return for n == 0 or r.Offset >= r.fileInput.fingerprintSize
+	if appendCount == 0 {
+		return n, err
+	}
+
+	// for appendCount==0, the following code would add `0` to fingerprint
 	r.Fingerprint.FirstBytes = append(r.Fingerprint.FirstBytes[:r.Offset], dst[:appendCount]...)
 	return n, err
 }

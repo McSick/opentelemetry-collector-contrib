@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pipeline // import "github.com/open-telemetry/opentelemetry-log-collection/pipeline"
+package pipeline // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/pipeline"
 
 import (
 	"fmt"
@@ -25,8 +25,8 @@ import (
 	"gonum.org/v1/gonum/graph/simple"
 	"gonum.org/v1/gonum/graph/topo"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/errors"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/errors"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 )
 
 var _ Pipeline = (*DirectedPipeline)(nil)
@@ -98,6 +98,15 @@ func (p *DirectedPipeline) Render() ([]byte, error) {
 // Operators returns a slice of operators that make up the pipeline graph
 func (p *DirectedPipeline) Operators() []operator.Operator {
 	operators := make([]operator.Operator, 0)
+	if nodes, err := topo.Sort(p.Graph); err == nil {
+		for _, node := range nodes {
+			operators = append(operators, node.(OperatorNode).Operator())
+		}
+		return operators
+	}
+
+	// If for some unexpected reason an Unorderable error is returned,
+	// when using topo.Sort, return the list without ordering
 	nodes := p.Graph.Nodes()
 	for nodes.Next() {
 		operators = append(operators, nodes.Node().(OperatorNode).Operator())

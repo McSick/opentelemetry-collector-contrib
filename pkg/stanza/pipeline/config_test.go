@@ -20,18 +20,18 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/parser/json"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/transformer/copy"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/transformer/noop"
-	"github.com/open-telemetry/opentelemetry-log-collection/testutil"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/parser/json"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/transformer/copy"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/transformer/noop"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/testutil"
 )
 
 func TestBuildPipelineSuccess(t *testing.T) {
 	cfg := Config{
 		Operators: []operator.Config{
 			{
-				Builder: noop.NewNoopOperatorConfig("noop"),
+				Builder: noop.NewConfig("noop"),
 			},
 		},
 	}
@@ -45,7 +45,7 @@ func TestBuildPipelineNoLogger(t *testing.T) {
 	cfg := Config{
 		Operators: []operator.Config{
 			{
-				Builder: noop.NewNoopOperatorConfig("noop"),
+				Builder: noop.NewConfig("noop"),
 			},
 		},
 	}
@@ -77,10 +77,10 @@ func TestBuildAPipelineDefaultOperator(t *testing.T) {
 	cfg := Config{
 		Operators: []operator.Config{
 			{
-				Builder: noop.NewNoopOperatorConfig("noop"),
+				Builder: noop.NewConfig("noop"),
 			},
 			{
-				Builder: noop.NewNoopOperatorConfig("noop1"),
+				Builder: noop.NewConfig("noop1"),
 			},
 		},
 		DefaultOutput: testutil.NewFakeOutput(t),
@@ -398,9 +398,9 @@ func TestUpdateOutputIDs(t *testing.T) {
 }
 
 func newDummyJSON(dummyID string) operator.Config {
-	return operator.Config{Builder: json.NewJSONParserConfig(dummyID)}
+	return operator.Config{Builder: json.NewConfig(dummyID)}
 }
 
 func newDummyCopy(dummyID string) operator.Config {
-	return operator.Config{Builder: copy.NewCopyOperatorConfig(dummyID)}
+	return operator.Config{Builder: copy.NewConfig(dummyID)}
 }

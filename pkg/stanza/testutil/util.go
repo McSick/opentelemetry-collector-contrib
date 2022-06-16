@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testutil // import "github.com/open-telemetry/opentelemetry-log-collection/testutil"
+package testutil // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/testutil"
 
 import (
-	context "context"
-	"io/ioutil"
-	"os"
+	"context"
 	"strings"
 	"sync"
 	"testing"
@@ -26,25 +24,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 )
-
-// NewTempDir will return a new temp directory for testing
-func NewTempDir(t testing.TB) string {
-	tempDir, err := ioutil.TempDir("", "")
-	if err != nil {
-		t.Errorf(err.Error())
-		t.FailNow()
-	}
-
-	t.Cleanup(func() {
-		if err := os.RemoveAll(tempDir); err != nil {
-			t.Errorf(err.Error())
-		}
-	})
-
-	return tempDir
-}
 
 // Logger will return a new tesst logger
 func Logger(t testing.TB) *zap.SugaredLogger {

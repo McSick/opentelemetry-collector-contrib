@@ -25,8 +25,8 @@ import (
 	"gonum.org/v1/gonum/graph/simple"
 	"gonum.org/v1/gonum/graph/topo"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
-	"github.com/open-telemetry/opentelemetry-log-collection/testutil"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/testutil"
 )
 
 func TestUnorderableToCycles(t *testing.T) {
@@ -309,5 +309,5 @@ func TestPipelineOperators(t *testing.T) {
 	require.NoError(t, err)
 
 	operators := pipeline.Operators()
-	require.ElementsMatch(t, []operator.Operator{mockOperator1, mockOperator2, mockOperator3}, operators)
+	require.Equal(t, []operator.Operator{mockOperator1, mockOperator2, mockOperator3}, operators)
 }

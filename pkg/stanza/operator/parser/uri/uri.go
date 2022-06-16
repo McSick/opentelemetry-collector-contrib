@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package uri // import "github.com/open-telemetry/opentelemetry-log-collection/operator/parser/uri"
+package uri // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/parser/uri"
 
 import (
 	"context"
@@ -22,51 +22,51 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/helper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 )
 
 func init() {
-	operator.Register("uri_parser", func() operator.Builder { return NewURIParserConfig("") })
+	operator.Register("uri_parser", func() operator.Builder { return NewConfig("") })
 }
 
-// NewURIParserConfig creates a new uri parser config with default values.
-func NewURIParserConfig(operatorID string) *URIParserConfig {
-	return &URIParserConfig{
+// NewConfig creates a new uri parser config with default values.
+func NewConfig(operatorID string) *Config {
+	return &Config{
 		ParserConfig: helper.NewParserConfig(operatorID, "uri_parser"),
 	}
 }
 
-// URIParserConfig is the configuration of a uri parser operator.
-type URIParserConfig struct {
+// Config is the configuration of a uri parser operator.
+type Config struct {
 	helper.ParserConfig `mapstructure:",squash" yaml:",inline"`
 }
 
 // Build will build a uri parser operator.
-func (c URIParserConfig) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
+func (c Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 	parserOperator, err := c.ParserConfig.Build(logger)
 	if err != nil {
 		return nil, err
 	}
 
-	return &URIParser{
+	return &Parser{
 		ParserOperator: parserOperator,
 	}, nil
 }
 
-// URIParser is an operator that parses a uri.
-type URIParser struct {
+// Parser is an operator that parses a uri.
+type Parser struct {
 	helper.ParserOperator
 }
 
 // Process will parse an entry.
-func (u *URIParser) Process(ctx context.Context, entry *entry.Entry) error {
+func (u *Parser) Process(ctx context.Context, entry *entry.Entry) error {
 	return u.ParserOperator.ProcessWith(ctx, entry, u.parse)
 }
 
 // parse will parse a uri from a field and attach it to an entry.
-func (u *URIParser) parse(value interface{}) (interface{}, error) {
+func (u *Parser) parse(value interface{}) (interface{}, error) {
 	switch m := value.(type) {
 	case string:
 		return parseURI(m)

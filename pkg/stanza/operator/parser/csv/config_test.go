@@ -16,16 +16,16 @@ package csv
 import (
 	"testing"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/helper"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/helper/operatortest"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper/operatortest"
 )
 
-func TestJSONParserConfig(t *testing.T) {
+func TestConfig(t *testing.T) {
 	cases := []operatortest.ConfigUnmarshalTest{
 		{
 			Name: "basic",
-			Expect: func() *CSVParserConfig {
+			Expect: func() *Config {
 				p := defaultCfg()
 				p.Header = "id,severity,message"
 				p.ParseFrom = entry.NewBodyField("message")
@@ -34,7 +34,7 @@ func TestJSONParserConfig(t *testing.T) {
 		},
 		{
 			Name: "lazy_quotes",
-			Expect: func() *CSVParserConfig {
+			Expect: func() *Config {
 				p := defaultCfg()
 				p.Header = "id,severity,message"
 				p.LazyQuotes = true
@@ -44,7 +44,7 @@ func TestJSONParserConfig(t *testing.T) {
 		},
 		{
 			Name: "delimiter",
-			Expect: func() *CSVParserConfig {
+			Expect: func() *Config {
 				p := defaultCfg()
 				p.Header = "id,severity,message"
 				p.ParseFrom = entry.NewBodyField("message")
@@ -54,7 +54,7 @@ func TestJSONParserConfig(t *testing.T) {
 		},
 		{
 			Name: "header_attribute",
-			Expect: func() *CSVParserConfig {
+			Expect: func() *Config {
 				p := defaultCfg()
 				p.HeaderAttribute = "header_field"
 				p.ParseFrom = entry.NewBodyField("message")
@@ -64,7 +64,7 @@ func TestJSONParserConfig(t *testing.T) {
 		},
 		{
 			Name: "timestamp",
-			Expect: func() *CSVParserConfig {
+			Expect: func() *Config {
 				p := defaultCfg()
 				p.Header = "timestamp_field,severity,message"
 				newTime := helper.NewTimeParser()
@@ -85,6 +85,6 @@ func TestJSONParserConfig(t *testing.T) {
 	}
 }
 
-func defaultCfg() *CSVParserConfig {
-	return NewCSVParserConfig("json_parser")
+func defaultCfg() *Config {
+	return NewConfig("json_parser")
 }

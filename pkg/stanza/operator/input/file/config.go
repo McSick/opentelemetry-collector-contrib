@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package file // import "github.com/open-telemetry/opentelemetry-log-collection/operator/input/file"
+package file // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/input/file"
 
 import (
 	"fmt"
@@ -21,13 +21,13 @@ import (
 	"github.com/bmatcuk/doublestar/v3"
 	"go.uber.org/zap"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/helper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
 )
 
 func init() {
-	operator.Register("file_input", func() operator.Builder { return NewInputConfig("") })
+	operator.Register("file_input", func() operator.Builder { return NewConfig("") })
 }
 
 const (
@@ -35,9 +35,9 @@ const (
 	defaultMaxConcurrentFiles = 1024
 )
 
-// NewInputConfig creates a new input config with default values
-func NewInputConfig(operatorID string) *InputConfig {
-	return &InputConfig{
+// NewConfig creates a new input config with default values
+func NewConfig(operatorID string) *Config {
+	return &Config{
 		InputConfig:             helper.NewInputConfig(operatorID, "file_input"),
 		PollInterval:            helper.Duration{Duration: 200 * time.Millisecond},
 		IncludeFileName:         true,
@@ -53,8 +53,8 @@ func NewInputConfig(operatorID string) *InputConfig {
 	}
 }
 
-// InputConfig is the configuration of a file input operator
-type InputConfig struct {
+// Config is the configuration of a file input operator
+type Config struct {
 	helper.InputConfig `mapstructure:",squash" yaml:",inline"`
 	Finder             `mapstructure:",squash" yaml:",inline"`
 
@@ -72,7 +72,7 @@ type InputConfig struct {
 }
 
 // Build will build a file input operator from the supplied configuration
-func (c InputConfig) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
+func (c Config) Build(logger *zap.SugaredLogger) (operator.Operator, error) {
 	inputOperator, err := c.InputConfig.Build(logger)
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (c InputConfig) Build(logger *zap.SugaredLogger) (operator.Operator, error)
 
 	// Ensure includes can be parsed as globs
 	for _, include := range c.Include {
-		_, err := doublestar.PathMatch(include, "matchstring")
+		_, err = doublestar.PathMatch(include, "matchstring")
 		if err != nil {
 			return nil, fmt.Errorf("parse include glob: %s", err)
 		}
@@ -92,7 +92,7 @@ func (c InputConfig) Build(logger *zap.SugaredLogger) (operator.Operator, error)
 
 	// Ensure excludes can be parsed as globs
 	for _, exclude := range c.Exclude {
-		_, err := doublestar.PathMatch(exclude, "matchstring")
+		_, err = doublestar.PathMatch(exclude, "matchstring")
 		if err != nil {
 			return nil, fmt.Errorf("parse exclude glob: %s", err)
 		}
@@ -153,7 +153,7 @@ func (c InputConfig) Build(logger *zap.SugaredLogger) (operator.Operator, error)
 		filePathResolvedField = entry.NewAttributeField("log.file.path_resolved")
 	}
 
-	return &InputOperator{
+	return &Input{
 		InputOperator:         inputOperator,
 		finder:                c.Finder,
 		PollInterval:          c.PollInterval.Raw(),

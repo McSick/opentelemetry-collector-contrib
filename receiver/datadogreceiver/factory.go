@@ -34,6 +34,7 @@ func NewFactory() component.ReceiverFactory {
 		typeStr,
 		createDefaultConfig,
 		component.WithTracesReceiver(createTracesReceiver))
+
 }
 
 func createDefaultConfig() config.Receiver {

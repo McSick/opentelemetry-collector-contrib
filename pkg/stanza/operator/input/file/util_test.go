@@ -27,14 +27,14 @@ import (
 	"github.com/observiq/nanojack"
 	"github.com/stretchr/testify/require"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
-	"github.com/open-telemetry/opentelemetry-log-collection/operator/helper"
-	"github.com/open-telemetry/opentelemetry-log-collection/testutil"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator/helper"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/testutil"
 )
 
-func newDefaultConfig(tempDir string) *InputConfig {
-	cfg := NewInputConfig("testfile")
+func newDefaultConfig(tempDir string) *Config {
+	cfg := NewConfig("testfile")
 	cfg.PollInterval = helper.Duration{Duration: 200 * time.Millisecond}
 	cfg.StartAt = "beginning"
 	cfg.Include = []string{fmt.Sprintf("%s/*", tempDir)}
@@ -42,13 +42,13 @@ func newDefaultConfig(tempDir string) *InputConfig {
 	return cfg
 }
 
-func newTestFileOperator(t *testing.T, cfgMod func(*InputConfig), outMod func(*testutil.FakeOutput)) (*InputOperator, chan *entry.Entry, string) {
+func newTestFileOperator(t *testing.T, cfgMod func(*Config), outMod func(*testutil.FakeOutput)) (*Input, chan *entry.Entry, string) {
 	fakeOutput := testutil.NewFakeOutput(t)
 	if outMod != nil {
 		outMod(fakeOutput)
 	}
 
-	tempDir := testutil.NewTempDir(t)
+	tempDir := t.TempDir()
 
 	cfg := newDefaultConfig(tempDir)
 	if cfgMod != nil {
@@ -60,7 +60,7 @@ func newTestFileOperator(t *testing.T, cfgMod func(*InputConfig), outMod func(*t
 	err = op.SetOutputs([]operator.Operator{fakeOutput})
 	require.NoError(t, err)
 
-	return op.(*InputOperator), fakeOutput.Received, tempDir
+	return op.(*Input), fakeOutput.Received, tempDir
 }
 
 func openFile(tb testing.TB, path string) *os.File {

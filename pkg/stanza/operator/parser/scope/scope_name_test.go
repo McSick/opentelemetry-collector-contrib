@@ -21,8 +21,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/open-telemetry/opentelemetry-log-collection/entry"
-	"github.com/open-telemetry/opentelemetry-log-collection/testutil"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/entry"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/testutil"
 )
 
 const testScopeName = "my.logger"
@@ -31,15 +31,15 @@ func TestScopeNameParser(t *testing.T) {
 	now := time.Now()
 	testCases := []struct {
 		name      string
-		config    *ScopeNameParserConfig
+		config    *Config
 		input     *entry.Entry
 		expectErr bool
 		expected  *entry.Entry
 	}{
 		{
 			name: "root_string",
-			config: func() *ScopeNameParserConfig {
-				cfg := NewScopeNameParserConfig("test")
+			config: func() *Config {
+				cfg := NewConfig("test")
 				cfg.ParseFrom = entry.NewBodyField()
 				return cfg
 			}(),
@@ -59,8 +59,8 @@ func TestScopeNameParser(t *testing.T) {
 		},
 		{
 			name: "nondestructive_error",
-			config: func() *ScopeNameParserConfig {
-				cfg := NewScopeNameParserConfig("test")
+			config: func() *Config {
+				cfg := NewConfig("test")
 				cfg.ParseFrom = entry.NewBodyField()
 				return cfg
 			}(),
@@ -80,8 +80,8 @@ func TestScopeNameParser(t *testing.T) {
 		},
 		{
 			name: "nonroot_string",
-			config: func() *ScopeNameParserConfig {
-				cfg := NewScopeNameParserConfig("test")
+			config: func() *Config {
+				cfg := NewConfig("test")
 				cfg.ParseFrom = entry.NewBodyField("logger")
 				return cfg
 			}(),

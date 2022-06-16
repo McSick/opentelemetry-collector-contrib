@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package pipeline // import "github.com/open-telemetry/opentelemetry-log-collection/pipeline"
-
-//go:generate mockery --name=^(Pipeline)$ --output=../testutil --outpkg=testutil --case=snake
+package pipeline // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/pipeline"
 
 import (
-	"github.com/open-telemetry/opentelemetry-log-collection/operator"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/operator"
 )
 
 // Pipeline is a collection of connected operators that exchange entries

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package errors // import "github.com/open-telemetry/opentelemetry-log-collection/errors"
+package errors // import "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza/errors"
 
 import (
 	"encoding/json"
@@ -33,8 +33,8 @@ func (e AgentError) Error() string {
 	if len(e.Details) == 0 {
 		return e.Description
 	}
-	marshalled, _ := json.Marshal(e.Details)
-	return fmt.Sprintf("%s: %s", e.Description, string(marshalled))
+	marshaled, _ := json.Marshal(e.Details)
+	return fmt.Sprintf("%s: %s", e.Description, string(marshaled))
 }
 
 // MarshalLogObject will define the representation of this error when logging.

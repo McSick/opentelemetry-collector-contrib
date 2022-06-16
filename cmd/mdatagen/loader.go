@@ -25,7 +25,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/non-standard/validators"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
-	"go.opentelemetry.io/collector/config/mapprovider/filemapprovider"
+	"go.opentelemetry.io/collector/confmap/provider/fileprovider"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
@@ -67,9 +67,9 @@ func (mvt *ValueType) UnmarshalText(text []byte) error {
 	case "double":
 		mvt.ValueType = pcommon.ValueTypeDouble
 	case "bool":
-		mvt.ValueType = pcommon.ValueTypeDouble
+		mvt.ValueType = pcommon.ValueTypeBool
 	case "bytes":
-		mvt.ValueType = pcommon.ValueTypeDouble
+		mvt.ValueType = pcommon.ValueTypeBytes
 	default:
 		return fmt.Errorf("invalid type: %q", vtStr)
 	}
@@ -117,8 +117,6 @@ type metric struct {
 	Sum *sum `yaml:"sum"`
 	// Gauge stores metadata for gauge metric type
 	Gauge *gauge `yaml:"gauge"`
-	// Histogram stores metadata for histogram metric type
-	Histogram *histogram `yaml:"histogram"`
 
 	// Attributes is the list of attributes that the metric emits.
 	Attributes []attributeName
@@ -130,9 +128,6 @@ func (m metric) Data() MetricData {
 	}
 	if m.Gauge != nil {
 		return m.Gauge
-	}
-	if m.Histogram != nil {
-		return m.Histogram
 	}
 	return nil
 }
@@ -177,13 +172,18 @@ type templateContext struct {
 }
 
 func loadMetadata(filePath string) (metadata, error) {
-	cp, err := filemapprovider.New().Retrieve(context.Background(), "file:"+filePath, nil)
+	cp, err := fileprovider.New().Retrieve(context.Background(), "file:"+filePath, nil)
+	if err != nil {
+		return metadata{}, err
+	}
+
+	m, err := cp.AsConf()
 	if err != nil {
 		return metadata{}, err
 	}
 
 	var md metadata
-	if err := cp.Map.UnmarshalExact(&md); err != nil {
+	if err := m.UnmarshalExact(&md); err != nil {
 		return metadata{}, err
 	}
 
@@ -246,16 +246,13 @@ func validateMetadata(out metadata) error {
 		if v.Gauge != nil {
 			dataTypesSet++
 		}
-		if v.Histogram != nil {
-			dataTypesSet++
-		}
 		if dataTypesSet == 0 {
 			return fmt.Errorf("metric %v doesn't have a metric type key, "+
-				"one of the following has to be specified: sum, gauge, histogram", k)
+				"one of the following has to be specified: sum, gauge", k)
 		}
 		if dataTypesSet > 1 {
 			return fmt.Errorf("metric %v has more than one metric type keys, "+
-				"only one of the following has to be specified: sum, gauge, histogram", k)
+				"only one of the following has to be specified: sum, gauge", k)
 		}
 	}
 
